@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Code Reviewer Engine</title>
+    <!-- Marked.js CDN for parsing Markdown formatting -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #121212;
+            color: #ffffff;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        h2 { 
+            text-align: center; 
+            color: #007acc; 
+            margin-bottom: 20px;
+        }
+        .container {
+            display: flex;
+            gap: 20px;
+            height: 78vh;
+        }
+        textarea, #output {
+            width: 50%;
+            height: 100%;
+            padding: 15px;
+            border-radius: 8px;
+            background: #1e1e1e;
+            color: #d4d4d4;
+            border: 1px solid #333;
+            font-family: 'Fira Code', 'Courier New', monospace;
+            font-size: 14px;
+            resize: none;
+            box-sizing: border-box;
+            overflow-y: auto;
+            line-height: 1.5;
+        }
+        #output {
+            white-space: normal;
+        }
+        /* Markdown Output Styles */
+        #output h1, #output h2, #output h3 { color: #569cd6; margin-top: 10px; }
+        #output code { background: #2d2d2d; padding: 2px 5px; border-radius: 4px; font-family: monospace; }
+        #output pre { background: #2d2d2d; padding: 10px; border-radius: 6px; overflow-x: auto; }
+        #output pre code { background: none; padding: 0; }
+        #output ul, #output ol { padding-left: 20px; }
+        #output blockquote { border-left: 4px solid #007acc; padding-left: 10px; color: #888; }
+        
+        button {
+            display: block;
+            margin: 15px auto 0;
+            padding: 12px 30px;
+            background: #007acc;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.2s ease;
+        }
+        button:hover { background: #005999; }
+    </style>
+</head>
+<body>
+
+    <h2>⚡ Automated AI Code Reviewer</h2>
+
+    <div class="container">
+        <textarea id="code" placeholder="Paste your source code here (JavaScript, C++, Python, etc.)..."></textarea>
+        <div id="output"><em>Automated analysis and recommendations will appear here...</em></div>
+    </div>
+
+    <button onclick="reviewCode()">Review Code</button>
+
+    <script>
+        async function reviewCode() {
+            const codeInput = document.getElementById('code').value;
+            const outputDiv = document.getElementById('output');
+
+            if (!codeInput.trim()) {
+                alert("Please enter valid source code before submitting.");
+                return;
+            }
+
+            outputDiv.innerHTML = "<em>Analyzing code structure, performance, and security... Please wait.</em>";
+
+            try {
+                const response = await fetch('http://localhost:5000/api/review', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ code: codeInput })
+                });
+
+                const data = await response.json();
+                if (data.review) {
+                    // Converts raw markdown into styled HTML text
+                    outputDiv.innerHTML = marked.parse(data.review);
+                } else {
+                    outputDiv.innerHTML = "<strong style='color: #f44336;'>Error:</strong> " + data.error;
+                }
+            } catch (err) {
+                outputDiv.innerHTML = "<strong style='color: #f44336;'>Connection Error:</strong> Unable to connect to backend server. Ensure the server is running on port 5000.";
+            }
+        }
+    </script>
+</body>
+</html>
